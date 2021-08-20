@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+// added for test
 @RequiredArgsConstructor
 @Component
 public class DataLoader implements CommandLineRunner {
