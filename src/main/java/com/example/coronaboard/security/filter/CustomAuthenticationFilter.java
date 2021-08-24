@@ -8,6 +8,8 @@ import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,6 +29,7 @@ import java.util.HashMap;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+@PropertySource("classpath:jwt.properties")
 @Log4j2
 @RequiredArgsConstructor
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter{
@@ -36,6 +39,11 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     private final JwtUtils jwtUtils;
     private final ObjectMapper objectMapper;
 
+    @Value("${corona.app.tokenPrefix}")
+    private String tokenPrefix;
+
+    @Value("${corona.app.headerString}")
+    private String headerString;
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -60,10 +68,13 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
         String userJwt = jwtUtils.generateJwtToken(authentication);
         HashMap<String, String> token = new HashMap<>();
-        token.put("Access_token",userJwt);
+        token.put(headerString,tokenPrefix + userJwt);
         token.put("createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         response.setContentType(APPLICATION_JSON_VALUE);
-        response.addHeader("access_token", userJwt);
+
+        User userPrincipal = (User) authentication.getPrincipal();
+        response.addHeader(headerString, tokenPrefix + userJwt);
+        response.addHeader("userId", userPrincipal.getId());
         response.addHeader("createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         objectMapper.writeValue(response.getOutputStream(), token);
     }
