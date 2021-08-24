@@ -2,6 +2,7 @@ package com.example.coronaboard.config;
 
 import com.example.coronaboard.security.MongoUserDetailService;
 import com.example.coronaboard.security.filter.CustomAuthenticationFilter;
+import com.example.coronaboard.security.filter.CustomAuthorizationFilter;
 import com.example.coronaboard.util.JwtUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor
@@ -36,7 +38,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.addFilter(customAuthenticationFilter());
+        http.addFilter(customAuthenticationFilter()); // antetication filter
+        http.addFilterBefore(customAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class); // authorization
         http.authorizeRequests(authorize -> {
             authorize.antMatchers(HttpMethod.GET, "/corona/v1/time/**").permitAll();
         }).authorizeRequests()
@@ -49,6 +52,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
+    }
+    @Bean
+    public  CustomAuthorizationFilter customAuthorizationFilter(){
+        return new CustomAuthorizationFilter(jwtUtils, mongoUserDetailService);
     }
 
     @Bean("customAuthenticationFilter")

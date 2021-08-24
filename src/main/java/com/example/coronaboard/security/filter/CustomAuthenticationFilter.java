@@ -25,6 +25,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 @Log4j2
 @RequiredArgsConstructor
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter{
@@ -60,7 +62,9 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         HashMap<String, String> token = new HashMap<>();
         token.put("Access_token",userJwt);
         token.put("createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-
+        response.setContentType(APPLICATION_JSON_VALUE);
+        response.addHeader("access_token", userJwt);
+        response.addHeader("createdAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         objectMapper.writeValue(response.getOutputStream(), token);
     }
 }
