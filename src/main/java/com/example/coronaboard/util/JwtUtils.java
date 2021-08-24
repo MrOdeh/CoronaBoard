@@ -20,6 +20,15 @@ public class JwtUtils {
     @Value("${corona.app.jwtExpirationMs}")
     private Integer jwtExpirationMs;
 
+    @Value("${corona.app.tokenPrefix}")
+    private String tokenPrefix;
+
+    @Value("${corona.app.headerString}")
+    private String headerString;
+
+    @Value("${corona.app.signUpUrl}")
+    private String signUpUrl;
+
 
     public String generateJwtToken(Authentication authentication) {
 

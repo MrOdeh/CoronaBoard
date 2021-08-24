@@ -8,9 +8,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +27,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@PropertySource("classpath:jwt.properties")
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
@@ -35,6 +38,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final JwtUtils jwtUtils;
     private final ObjectMapper objectMapper;
 
+    @Value("${corona.app.signUpUrl}")
+    private String signUpUrl;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -45,13 +50,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }).authorizeRequests()
                 .anyRequest()
                 .authenticated()
- /*               .and()
-                .httpBasic()*/
                 .and()
                 .csrf().disable()
                 .formLogin().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
+         /*               .and()
+                .httpBasic()*/
     }
     @Bean
     public  CustomAuthorizationFilter customAuthorizationFilter(){
@@ -63,7 +67,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
         CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(mongoUserDetailService,
                 authenticationManagerBean(), jwtUtils, objectMapper);
-        customAuthenticationFilter.setFilterProcessesUrl("/api/login");
+        customAuthenticationFilter.setFilterProcessesUrl(signUpUrl);
         customAuthenticationFilter.setAuthenticationManager(authenticationManagerBean());
         return  customAuthenticationFilter;
     }

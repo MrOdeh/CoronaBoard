@@ -4,6 +4,8 @@ import com.example.coronaboard.domain.security.User;
 import com.example.coronaboard.security.MongoUserDetailService;
 import com.example.coronaboard.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,12 +19,18 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
+@PropertySource("classpath:jwt.properties")
 @RequiredArgsConstructor
 public class CustomAuthorizationFilter  extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final MongoUserDetailService mongoUserDetailService;
+
+    @Value("${corona.app.tokenPrefix}")
+    private String tokenPrefix;
+
+    @Value("${corona.app.headerString}")
+    private String headerString;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -47,9 +55,9 @@ public class CustomAuthorizationFilter  extends OncePerRequestFilter {
     }
 
     private String parseJwt(HttpServletRequest request) {
-        String headerAuth = request.getHeader("Authorization");
+        String headerAuth = request.getHeader(headerString);
 
-        if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
+        if (headerAuth != null && headerAuth.startsWith(tokenPrefix)) {
             return headerAuth.substring(7);
         }
 
