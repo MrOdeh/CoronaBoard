@@ -42,6 +42,24 @@ public class JwtUtils {
                 .compact();
     }
 
+    public String generateJwtToken(String userName, Integer numOfSec){
+
+        if(userName == null || userName.equals("")){
+            return null;
+        }
+
+        if(numOfSec == null){ // defualt 2 Hours
+            numOfSec = 7200;
+        }
+
+        return Jwts.builder()
+                .setSubject(userName)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + numOfSec))
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+    }
+
     public String getUserNameFromJwtToken(String token) {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
     }
